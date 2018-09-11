@@ -19,4 +19,4 @@ The schedule will be as follows:
 - 12:30-13:30 Break
 - 13:30-14:30 More working with data (the tidyverse way, i.e. using https://dplyr.tidyverse.org/ and https://tidyr.tidyverse.org/) 
 - 14:30-15:30 More data visualization (learning to love ggplot)
-- 15:30-16:30 More statistical analyses (logistic regression, multilevel models)
+- 15:30-16:30 More statistical analyses (including logistic regression, multilevel models)
