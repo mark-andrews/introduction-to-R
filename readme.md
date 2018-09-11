@@ -1,4 +1,4 @@
-# Introduction to R
+# Introduction to R workshop
 
 (Code, slides etc., will be added to this GitHub site within the next few days)
 
