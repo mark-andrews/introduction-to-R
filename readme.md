@@ -20,3 +20,7 @@ The schedule will be as follows:
 - 13:30-14:30 More working with data (the tidyverse way, i.e. using https://dplyr.tidyverse.org/ and https://tidyr.tidyverse.org/) 
 - 14:30-15:30 More data visualization (learning to love ggplot)
 - 15:30-16:30 More statistical analyses (including logistic regression, multilevel models)
+
+
+Mark Andrews (mark.andrews@ntu.ac.uk)
+Senior Lecturer, Department of Psychology
