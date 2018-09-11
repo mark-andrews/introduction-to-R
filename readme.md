@@ -24,3 +24,20 @@ The schedule will be as follows:
 
 Mark Andrews (mark.andrews@ntu.ac.uk)
 Senior Lecturer, Department of Psychology
+
+## Getting to the Chaucer building
+
+For those who are not staff or students at NTU, the Chaucer building is located
+on Goldsmith Street; the main entrance being adjacent to the Nottingham Trent
+University tram stop.  The easiest way to get to Chaucer is via tram from
+Nottingham railway station (in which case you can travel direct from Nottingham
+Station towards Hucknall/Phoenix Park) and will arrive literally outside
+Chaucer after four stops. If travelling by car it is best to travel to the
+Forest Park and Ride. Parking is free and you can take the tram for two stops
+towards the station. This tram also stops at the Nottingham Trent University
+tram stop (but on the other side of the tracks).  Both journeys take about 15
+minutes if walking. If travelling by tram purchase a ticket from a machine
+before getting on the tram (the ticket machines are easy to use and take cash
+or credit/debit cards).
+
+
