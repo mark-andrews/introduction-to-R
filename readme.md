@@ -40,14 +40,6 @@ There are four main pieces of software to install:
     use R the modern way.
 -   Miscellaneous R packages: Other vital, or just handy, R packages.
 
-All of the above installation should be easy and painless except
-possibly for the installation of [Stan](http://mc-stan.org/), which can
-possibly be tricky because it is an external program and requires
-addition programming tools like c++ libraries and compilers etc.
-However, in the instructions below there are links to pages that provide
-ample detail on how to install and test [Stan](http://mc-stan.org/) and
-all its dependencies.
-
 ### Installing R
 
 Go to the [R](https://www.r-project.org/) website and follow the links
