@@ -106,6 +106,8 @@ install.packages("rmarkdown")
 install.packages("knitr")
 install.packages("lme4")
 install.packages("pscl")
+install.packages("psych")
+install.packages("car")
 ```
 
 
