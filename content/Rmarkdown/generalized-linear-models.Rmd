@@ -1,0 +1,124 @@
+---
+title: "Generalized Linear models"
+author: "Mark Andrews"
+date: "April 5, 2017"
+output:
+  pdf_document: default
+editor_options:
+  chunk_output_type: inline
+---
+
+# Introduction
+
+In generalized linear models, we model the outcome variable as a random variable whose parameters are transformed linear functions of some of more predictors variables. 
+
+```{r message=FALSE}
+library(pander)
+```
+
+
+# Logistic regression
+
+In a binary logistic regression, we model the outcome variable as Bernoulli random variable with a parameter $p$, and where the log odds of $p$ is a linear function of predictor variables. In other words, for all $i$,
+$$
+\begin{aligned}
+  y_i &\sim \textrm{dbern}(p_i), \\
+  \log\left(\frac{p_i}{1-p_i}\right) &= \beta_0 + \sum_{k=1}^K \beta_k x_{ki}  
+\end{aligned}
+$$
+
+We'll load up some data about extra marital affairs. 
+```{r}
+load('../data/affairs.Rda')
+```
+
+Let's take a look:
+```{r}
+head(Affairs)
+```
+We create a new variable that indicates if someone cheats or not:
+```{r}
+Affairs$cheater <- Affairs$affairs > 0
+```
+
+Now, we'll model how the probability of cheating varies by gender:
+```{r}
+M <- glm(cheater ~ gender, 
+         data=Affairs, 
+         family=binomial)
+```
+
+## Predictions
+As usual, we will make some data to make predictions about:
+```{r}
+hypothetical.data <- data.frame(gender=c('male', 'female'))
+```
+and then make the predictions
+```{r}
+predict(M, newdata=hypothetical.data)
+```
+These predictions are in log odds units, so we can convert to probabilities using the inverse logit function, which we can make ourselves:
+```{r}
+ilogit <- function(x){1/(1+exp(-x))}
+
+logodds <- predict(M, newdata=hypothetical.data) # these are log odds
+names(logodds) <- c('Male', 'Female')
+ilogit(logodds)
+```
+
+We can get the same result more easily with the following:
+```{r}
+predictions <- predict(M, newdata=hypothetical.data, type='response') 
+names(predictions) <- c('Male', 'Female')
+predictions
+```
+
+## Model comparison
+
+We will model cheating using two different models, i.e. two models with different numbers of predictors:
+
+```{r}
+### Using all predictors
+M <- glm(cheater ~ gender + age + yearsmarried
+         + children + religiousness + education
+         + occupation + rating, 
+         data=Affairs, 
+         family=binomial)
+
+# This is the "null" model, i.e. no predictors
+M.null <- glm(cheater ~ 1, 
+              data=Affairs, 
+              family=binomial)
+```
+
+We do model comparison by way of a log likelihood test:
+```{r}
+ll.test <- anova(M.null, M, test='Chisq')
+pander(ll.test, missing='')
+```
+
+
+# Poisson regression
+
+Instead of modelling the probability of cheating, we can model the number of affairs people have, using a Poisson regression model:
+
+```{r}
+M <- glm(affairs ~ gender + age + yearsmarried
+         + children + religiousness + education
+         + occupation + rating, 
+         data=Affairs, 
+         family=poisson)
+
+M.null <- glm(affairs ~ 1, 
+              data=Affairs, 
+              family=poisson)
+
+# Model fit comparison of null and full based on the "Deviance"
+ll.test <- anova(M.null, M, test='Chisq')
+pander(ll.test, missing='')
+```
+
+
+
+
+

@@ -1,0 +1,122 @@
+---
+title: "Simple Statistical Data Analysis"
+author: "Mark Andrews"
+date: "April 5, 2017"
+output:
+  pdf_document: default
+editor_options:
+  chunk_output_type: inline
+---
+
+# Introduction
+
+With extremely rare exceptions, any statistical method that you might like to use for data analysis is probably already available in R. Here, we will start with the basics.
+
+# T-tests
+
+```{r}
+set.seed(101)
+x <- rnorm(10)
+y <- rnorm(12)
+
+t.test(x, y)
+```
+
+If we want to assume that the variance of the two groups are equal, then specify this as follows:
+```{r}
+M <- t.test(x, y, var.equal=T)
+```
+
+From this, the object *M* contains all the properties of the t-test results. For example, 
+```{r}
+M$statistic # The test statistic
+
+M$parameter # The degrees of freedom
+
+M$p.value # The p-value
+```
+
+## A paired sample t-test 
+```{r}
+set.seed(102)
+N <- 10
+x <- rnorm(N)
+y <- rnorm(N)
+(M <- t.test(x, y, paired = T))
+```
+
+## A one sample t-test 
+```{r}
+set.seed(103)
+x <- rnorm(10)
+(M <- t.test(x))
+```
+
+# Some non-parametric tests
+
+Non-parametric counterparts of the independent samples and the paired samples t-tests are the Mann-Whitney U test and the Wilcoxon signed ranks tests.
+
+This is the Mann Whitney U test:
+
+```{r}
+set.seed(101)
+
+x <- rnorm(10)
+y <- rnorm(12)
+
+wilcox.test(x, y) # Yes, I know it is not called Mann Whitney
+```
+
+This is the Wilcoxon signed ranks test:
+```{r}
+set.seed(102)
+N <- 10
+x <- rnorm(N)
+y <- rnorm(N)
+wilcox.test(x, y, paired = TRUE) 
+```
+
+# Pearson's $\chi^2$ test
+
+For this, we will use the *Titanic*[^titanic] data set. 
+```{r}
+data("Titanic") # load it up
+```
+This is a four dimensional table of frequencies:
+```{r}
+dimnames(Titanic)
+```
+We'll concatenate by 'Sex' and 'Survived' to make a 2 by 2 table to use as our observed frequencies:
+```{r}
+(observed <- apply(Titanic, c('Sex', 'Survived'), sum))
+```
+
+To do the $\chi^2$ test, it is simply
+```{r}
+(M <- chisq.test(observed))
+```
+As before, we can access properties of the test, e.g.
+```{r}
+M$expected
+```
+
+# Correlations
+```{r}
+set.seed(104)
+N <- 20
+
+x <- rnorm(N)
+y <- rnorm(N)
+```
+
+To do a good old Pearson's product moment correlation:
+```{r}
+cor.test(x, y)
+```
+And a good old Spearman's $\rho$:
+```{r}
+cor.test(x, y, method='spearman')
+```
+
+
+[^titanic]: *Titanic* is a ship named after a famous movie from the 1990's.

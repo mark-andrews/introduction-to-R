@@ -1,0 +1,252 @@
+---
+title: "Working with data frames"
+author: "Mark Andrews"
+date: "July 9, 2018"
+output:
+  pdf_document: default
+editor_options:
+  chunk_output_type: inline
+---
+```{r, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, include=TRUE, message = FALSE, warning = FALSE)
+```
+
+
+```{r}
+library(dplyr)
+library(readr)
+library(tidyr)
+options(tibble.width = Inf) 
+```
+
+
+# Introduction
+
+Most of time when we are working with data, we work with *data frames*. Data frames can be seen as similar to spreadsheets, i.e. with multiple rows and multiple columns, and each column representing a variable. In this note, we will deal with data-frame using the `tidyverse` approach. You can do more or less everything shown below in a `base R` way too, but on balance I think the `tidyverse` way is the more efficient way and I think it is more likely to be way we all be doing it in the future anyway. 
+
+# Read in a data frame from csv file
+
+We'll start by reading in a csv file as a data frame (which could also be done from the RStudio `Import Dataset` menu in `Environment`):
+
+```{r}
+(Df <- read_csv('../data/LexicalDecision.csv'))
+```
+Note that `read_csv`, which is part of the `readr` package, which is loaded above.
+
+# Quick look of your data frame
+
+```{r}
+glimpse(Df)
+```
+
+# Rename variable names 
+
+We can rename as many variables as you like as follows:
+```{r}
+(Df <- rename(Df,
+              word = item,
+              reaction_time = latency))
+```
+The `rename` function takes a data-frame and returns a new data frame. In other words, it does not affect the original data-frame, but produces a copy[^copy] of the original but with the variables renamed. 
+
+[^copy]: It's not actually a copy of the data but a copy of the pointers to the data. That means that these operations are both fast and memory efficient.
+
+# Subsetting your data frame
+
+In any data analysis, a lot of time is spent selecting subsets of rows and columns of our data-frame. Doing so efficiently makes everything quicker and easier. 
+
+## Choose a subset of variables (i.e., columns)
+
+Using the `select` function, you will just list out the names of the variables you want to keep:
+```{r}
+select(Df, subject, word, accuracy, reaction_time)
+```
+
+Sometimes, especially when you have many variables, selecting all those you want to keep by explicitly writing down their names as above can be a lot of work. Here are some short-cuts. Let's say you want to keep all but the variables `valence`, you could do:
+```{r}
+select(Df, -valence) # select all variables except `valence`
+```
+If you wanted to keep all but `valence` and `frequency`, you can do 
+```{r}
+select(Df, -valence, -frequency)
+```
+Note that the above code effectively *deletes* the `valence` and `frequency` variables, so we can use it to drop variables from a data frame. 
+
+We can also select sequences of variables. For example, we could keep all variables starting with the variables `subject` and ending with `length` as follows:
+```{r}
+select(Df, subject:length)
+```
+
+Although we won't cover them here, there are other more powerful tricks that use *regular expressions*. These are very handy for selecting variables that all begin with the same prefix, e.g. `foo-1`, `foo-2`, `foo-3` ... `foo-78`. 
+
+One final handy trick is the `everything` function. Let's say you want to move the variable `frequency` to be the first variable in the data-frame. You could do
+```{r}
+select(Df, frequency, everything())
+```
+
+
+## Choose a subset of the observations (i.e., rows)
+
+If you want to select some rows, you can use a `slice`. In the following, we choose rows 10 to 20:
+```{r}
+slice(Df, 10:20)
+```
+and here we choose rows 10, 20, 30, 40-45.
+```{r}
+slice(Df, c(10, 20, 30, 40:45)) # 
+```
+and so on. 
+
+## Filtering observations
+
+Often, slicing is not the easiest ways to select our rows. In fact, it is best to use `slice` only when you know exactly the row indices of the rows you want to keep. For general situtations, it is best to use `filter`. For example, the following will allow us to select only those observations where the reaction times are less than 2000 milliseconds.
+```{r}
+filter(Df, reaction_time < 2000)
+```
+While this will allow us to select the observations where the reaction times are above 200 and below 2000 milliseconds.
+```{r}
+filter(Df, reaction_time > 200 & reaction_time < 2000)
+```
+
+We can also filter more than one variable simultaneously. For example, here we'll filter our those observations where the response was accurate (this is denoted by a value of `1`), the reaction time was between 250 and 750, and the length of the word was between 2 and 5. 
+```{r}
+filter(Df,
+       accuracy == 1,
+       reaction_time > 250 & reaction_time < 750,
+       length %in% seq(2, 5))
+
+```
+
+# Sorting rows 
+
+The `arrange` function will sort rows. You just specify which columns to sort by. For example, to sort by `reaction_time`, you'd do:
+```{r}
+arrange(Df, reaction_time)
+```
+To sort by `length` first and then by `reaction_time`, do 
+```{r}
+arrange(Df, length, reaction_time)
+```
+You can sort in descending order by using the `desc` function around the variable name. For example, here we sort by reaction time for largest to smallest: 
+```{r}
+arrange(Df, desc(reaction_time))
+```
+
+
+# Adding new variables
+
+The `mutate` function adds new variables. For example, let's say we want to add a new variable that is the logarithm of the frequency of the word. We would do this by 
+```{r}
+mutate(Df, log_frequency = log(frequency))
+```
+
+The previous code appended the new `log_frequency` variable onto the end of the data-frame. If we use the same new for the new variable, we'll replace the old varibale, e.g. 
+```{r}
+mutate(Df, frequency = log(frequency))
+```
+
+If you want to create new variables and only keep the new variables, dropping the old ones, you can use `transmute`. For example, here we create three new variables, keep these and throw away the original variables:
+
+```{r}
+transmute(Df,
+          fast_rt = if_else(reaction_time < 500, 'fast', 'not.fast'),
+          short_word = if_else(length <= 3, 'short', 'not.short'),
+          frequency = log(frequency))
+```
+
+# Summarizing your variables
+
+You can summarize your variables using `summarize` (or `summarise` if you prefer British-English spellings):
+```{r}
+summarise(Df, 
+          mean = mean(reaction_time), 
+          median = median(reaction_time), 
+          stdev = sd(reaction_time), 
+          n = n() # This gives counts
+)
+```
+
+Often we want to produce summaries of our variables for different groups of observations. In this case, an obvious example is to group our observations according to whether the response for correct or not, and then produce summaries for each subset of data. The way to do this is with the `group_by` function combined with the `summarize` function. In particular, first you group, then you summarize. For example,
+
+```{r}
+Df.tmp <- group_by(Df, accuracy) # Create a tmp Df, where the data are grouped
+summarize(Df.tmp,
+          mean = mean(reaction_time), 
+          median = median(reaction_time), 
+          stdev = sd(reaction_time), 
+          n = n()
+)
+```
+The above code can be done on one line, and without the need for the temporary data-frame, by using a so-called *pipe*. The pipe is given by the command `%>%`. It takes the output from one function and passes it to another function. The above code using the pipe is
+```{r}
+group_by(Df, accuracy) %>%
+  summarize(mean = mean(reaction_time),
+            median = median(reaction_time),
+            stdev = sd(reaction_time),
+            n = n()
+  )
+```
+
+# Combining operations with %>% 
+
+Often, when data wrangling, we want to repeatedly apply functions to our data-frame. The pipe can be very helpful when doing this. As an example, let's say we want to filter out the very fast and the very slow reaction times and the incorrect responses, and then group by subject identity, and calculate the mean reaction time per subject, and then sort by this. To do this, we would do
+```{r}
+Df %>% 
+  filter(reaction_time > 250 & reaction_time < 1250,
+         accuracy == 1) %>%
+  group_by(subject) %>%
+  summarise(mean_rt = mean(reaction_time)) %>%
+  arrange(mean_rt)
+```
+
+# Converting wide to long, or long to wide
+
+In a *tidy* data set, every column is a variable and every row is an observation. Often your data needs to be beaten to this shape.
+
+Let's read in a wide format data, which is a commonly used by SPSS users.
+```{r}
+(Df.wide <- read_csv('../data/widedata.csv'))
+```
+This is fake data, but we'll pretend it gives the memory recall rate of each of 7 subjects in each of three experimental conditions. We can make this into a long, and tidy, format with ```gather```. We need to specify the columns to pull together and then the name, or ```key``` for the newly gathered variables, and then name of the values of these variables.
+
+```{r}
+(Df.long <- gather(Df.wide, conditionA, conditionB, conditionC, key='condition', value='recall'))
+```
+
+The opposite of a ```gather``` is a ```spread```. This converts a long to a wide format. To illustrate, we'll just go backwards from ```D.long``` to ```Df.wide```. Here, we need only state the variable to "spread" and which variable's values to use as the values of the newly spread variables. 
+
+```{r}
+spread(Df.long, key=condition, value=recall)
+```
+
+
+# Combining and merging data frames
+
+For these examples, we'll first read in some new data sets:
+```{r}
+lexicon_A <- read_csv('../data/lexiconA.csv')
+lexicon_B <- read_csv('../data/lexiconB.csv')
+lexicon_C <- read_csv('../data/lexiconC.csv')
+behav_data <- read_csv('../data/data.csv')
+```
+
+The data frames `lexicon_A` and `lexicon_C` have the same column names and so we can stack them on top of each other:
+```{r}
+bind_rows(lexicon_A, lexicon_C) # 
+```
+
+The data frames `lexicon_A` and `behav_data` have the same number of rows, so we can stack them side by side:
+```{r}
+bind_cols(lexicon_A, behav_data)
+```
+
+A more interesting case is where we want to merge values from two data frames according to common variables. The data frames `lexicon_A` and `lexicon_B` have a common variable, i.e. `word`. We can merge them by this common variable:
+```{r}
+inner_join(lexicon_A, lexicon_B, by='word')
+```
+Note that this will drop all rows of `lexicon_A` that do not have matching `word` in `lexicon_B`, and vice versa. As it happens, all rows in `lexicon_A` do have a matching `word` in `lexicon_B`, but all rows in `lexicon_B` do not have a matching `word` in `lexicon_A`. If we want to include all rows in `lexicon_B` regardless, we could do:
+```{r}
+right_join(lexicon_A, lexicon_B, by='word')
+```
+Note how we include missing values for the `length` and `pos` of those words in `lexicon_B` that are not in `lexicon_A`.
+
