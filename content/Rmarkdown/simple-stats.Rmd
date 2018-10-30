@@ -1,7 +1,7 @@
 ---
 title: "Simple Statistical Data Analysis"
 author: "Mark Andrews"
-date: "April 5, 2017"
+date: "October 30, 2018"
 output:
   pdf_document: default
 editor_options:
@@ -10,7 +10,7 @@ editor_options:
 
 # Introduction
 
-With extremely rare exceptions, any statistical method that you might like to use for data analysis is probably already available in R. Here, we will start with the basics.
+With extremely rare exceptions, any statistical method that you might like to use for data analysis is probably already available in R. Here, we will start with the basics and to keep things extra simple, we'll make up artificial data for the analyses.
 
 # T-tests
 
@@ -118,5 +118,6 @@ And a good old Spearman's $\rho$:
 cor.test(x, y, method='spearman')
 ```
 
-
 [^titanic]: *Titanic* is a ship named after a famous movie from the 1990's.
+
+
