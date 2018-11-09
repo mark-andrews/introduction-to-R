@@ -84,6 +84,7 @@ install.packages("pscl")
 install.packages("psych")
 install.packages("MASS")
 install.packages("car")
+install.packages("nnet")
 ```
 
 
