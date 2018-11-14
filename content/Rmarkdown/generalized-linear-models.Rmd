@@ -1,7 +1,7 @@
 ---
 title: "Generalized Linear models"
 author: "Mark Andrews"
-date: "April 5, 2017"
+date: "November 14, 2018"
 output:
   pdf_document: default
 editor_options:
@@ -13,7 +13,12 @@ editor_options:
 In generalized linear models, we model the outcome variable as a random variable whose parameters are transformed linear functions of some of more predictors variables. 
 
 ```{r message=FALSE}
+library(dplyr)
+library(magrittr)
+library(readr)
 library(pander)
+library(tidyr)
+library(tibble)
 ```
 
 
@@ -27,96 +32,148 @@ $$
 \end{aligned}
 $$
 
-We'll load up some data about extra marital affairs. 
-```{r}
-load('../data/affairs.Rda')
+We'll load up some data about the Titanic. 
+```{r,message=FALSE, warning=FALSE}
+Df <- read_csv('../data/TitanicSurvival.csv') %>% 
+  select(class = passengerClass,
+         sex,
+         age, 
+         survived) %>% 
+  mutate(survived = ifelse(survived=='yes', T, F))
 ```
 
-Let's take a look:
+Now, we'll model how the probability of surviving by `sex`:
 ```{r}
-head(Affairs)
-```
-We create a new variable that indicates if someone cheats or not:
-```{r}
-Affairs$cheater <- Affairs$affairs > 0
-```
-
-Now, we'll model how the probability of cheating varies by gender:
-```{r}
-M <- glm(cheater ~ gender, 
-         data=Affairs, 
+M <- glm(survived ~ sex, 
+         data=Df,
          family=binomial)
 ```
 
+We can look at the results as follows:
+```{r}
+summary(M)
+```
+
+
 ## Predictions
+
 As usual, we will make some data to make predictions about:
 ```{r}
-hypothetical.data <- data.frame(gender=c('male', 'female'))
+hypothetical_data <- tibble(sex=c('male', 'female'))
 ```
 and then make the predictions
 ```{r}
-predict(M, newdata=hypothetical.data)
+predict(M, newdata=hypothetical_data)
 ```
 These predictions are in log odds units, so we can convert to probabilities using the inverse logit function, which we can make ourselves:
 ```{r}
 ilogit <- function(x){1/(1+exp(-x))}
 
-logodds <- predict(M, newdata=hypothetical.data) # these are log odds
-names(logodds) <- c('Male', 'Female')
+logodds <- predict(M, newdata=hypothetical_data) # these are log odds
+names(logodds) <- c('male', 'memale')
 ilogit(logodds)
 ```
 
 We can get the same result more easily with the following:
 ```{r}
-predictions <- predict(M, newdata=hypothetical.data, type='response') 
+predictions <- predict(M, newdata=hypothetical_data, type='response') 
 names(predictions) <- c('Male', 'Female')
 predictions
 ```
 
+Or better yet, we attach the predicted probabilities to the data frame of hypothetical values:
+```{r}
+hypothetical_data %<>%
+  mutate(prediction = predict(M, newdata = ., type = 'response'))
+```
+
+
 ## Model comparison
 
-We will model cheating using two different models, i.e. two models with different numbers of predictors:
+We will model Titanic survival using two different models, i.e. two models with different numbers of predictors:
 
 ```{r}
-### Using all predictors
-M <- glm(cheater ~ gender + age + yearsmarried
-         + children + religiousness + education
-         + occupation + rating, 
-         data=Affairs, 
-         family=binomial)
+# Use sex and passenger and their interaction
+M_full <- glm(survived ~ sex*class, # equivalent to sex + class + sex:class
+              data=Df, 
+              family=binomial)
 
-# This is the "null" model, i.e. no predictors
-M.null <- glm(cheater ~ 1, 
-              data=Affairs, 
+# This is our comparison model, i.e. no interaction effect
+M_null <- glm(survived ~ sex + class, 
+              data=Df, 
               family=binomial)
 ```
 
 We do model comparison by way of a log likelihood test:
 ```{r}
-ll.test <- anova(M.null, M, test='Chisq')
-pander(ll.test, missing='')
+ll_test <- anova(M_null, M, test='Chisq')
+pander(ll_test, missing='')
 ```
+
+# Binomial logistic regression
+
+In binomial logistic regression, our data are counts of number of "successes" out of a total number of trials. To obtain appropriate data, we'll calculate the number of survivors and non-survivors per each `class` by `sex` combination.
+
+```{r}
+Df_agg <- group_by(Df, class, sex) %>% 
+  summarize(survived = sum(survived == TRUE), 
+            perished = n() - survived
+  )
+```
+
+Now, we do the logistic regression similarly, but not identically, to before:
+```{r}
+M <- glm(cbind(survived, perished) ~ sex*class,
+         family = binomial,
+         data = Df_agg)
+```
+
+The results are identical to the model `M_full` above.
 
 
 # Poisson regression
 
-Instead of modelling the probability of cheating, we can model the number of affairs people have, using a Poisson regression model:
+In Poisson regression, our outcome variables are counts, i.e. discrete frequencies, and so each $y_i \in 0, 1 \ldots$, and our probabilistic model of the data is as follows:
+$$
+\begin{aligned}
+  y_i &\sim \textrm{dpois}(\lambda_i), \\
+  \log\left(\lambda_i\right) &= \beta_0 + \sum_{k=1}^K \beta_k x_{ki}  
+\end{aligned}
+$$
 
+To explore this type of model, we will use the `affairs.csv` data-set:
+```{r, message=FALSE}
+Df <- read_csv('../data/affairs.csv')
+```
+
+And we'll model the frequencies of extra-marital affairs as a function of all the predictors:
 ```{r}
 M <- glm(affairs ~ gender + age + yearsmarried
          + children + religiousness + education
          + occupation + rating, 
-         data=Affairs, 
+         data=Df, 
          family=poisson)
+```
 
-M.null <- glm(affairs ~ 1, 
-              data=Affairs, 
+As before, we can do model comparisons.
+```{r}
+M_null <- glm(affairs ~ gender + age, 
+              data=Df, 
               family=poisson)
 
 # Model fit comparison of null and full based on the "Deviance"
-ll.test <- anova(M.null, M, test='Chisq')
+ll.test <- anova(M_null, M, test='Chisq')
 pander(ll.test, missing='')
 ```
+
+And we can do predictions (here using `M_null` for convenience):
+```{r}
+Df_h <- tibble(gender = c('male', 'female'),
+               age = median(Df$age))
+Df_h %<>%
+  mutate(prediction = predict(M_null, newdata = ., type = 'response'))
+```
+
 
 
 
