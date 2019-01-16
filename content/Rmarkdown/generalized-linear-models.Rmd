@@ -18,6 +18,7 @@ library(magrittr)
 library(readr)
 library(pander)
 library(tidyr)
+library(ggplot2)
 library(tibble)
 ```
 
@@ -109,6 +110,19 @@ We do model comparison by way of a log likelihood test:
 ll_test <- anova(M_null, M, test='Chisq')
 pander(ll_test, missing='')
 ```
+
+Having established that there is an interaction between `sex` and `class`, we'd like to understand this interaction. Definitely the best place to begin is with a plot. There are many options here, but one is to view how the predicted probability of surviving varies by `class` across the two sexes.
+```{r}
+expand.grid(sex = c('male', 'female'),
+            class = c('1st', '2nd', '3rd')
+) %>% mutate(predicted_logodds = predict(M_full, newdata = .),
+             predicted_probability = ilogit(predicted_logodds)
+) %>% ggplot(
+  aes(x = class, y = predicted_logodds, group = sex, col = sex)
+  ) + geom_point() + geom_line() + theme_classic()
+```
+
+
 
 # Binomial logistic regression
 
