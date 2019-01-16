@@ -1,5 +1,21 @@
 # Introduction to R workshop
 
+The main content of this repository is the set of RMarkdown documents found in
+`content/RMarkdown`. You can download and run these yourself in RStudio, making
+changes and extensions as you wish, and create pdf/Word documents from them, if
+you wish.
+
+If you'd just like the pdfs rendered from these RMarkdown documents, they are:
+
+- [Simple statistical models/tests](https://github.com/lawsofthought/introduction-to-R/blob/ntu-octnov-2018/content/pdf/simple_stats.pdf)
+- [Reading, summarizing, visualizing data](https://github.com/lawsofthought/introduction-to-R/blob/ntu-octnov-2018/content/pdf/reading_summarizing_visualizing.pdf)
+- [Introduction to visualization](https://github.com/lawsofthought/introduction-to-R/blob/ntu-octnov-2018/content/pdf/visualization.pdf)
+- [Introduction to data wrangling with dplyr](https://github.com/lawsofthought/introduction-to-R/blob/ntu-octnov-2018/content/pdf/working_with_dataframes.pdf)
+- [Linear models](https://github.com/lawsofthought/introduction-to-R/blob/ntu-octnov-2018/content/pdf/linear_models.pdf)
+- [Generalized linear models](https://github.com/lawsofthought/introduction-to-R/blob/ntu-octnov-2018/content/pdf/generalized-linear-models.pdf)
+- [Multilevel models](https://github.com/lawsofthought/introduction-to-R/blob/ntu-octnov-2018/content/pdf/multilevel-models.pdf)
+
+
 ## Installing the necessary software
 
 The required software for these workshops are all free and open source
